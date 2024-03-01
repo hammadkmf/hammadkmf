@@ -14,8 +14,8 @@ def is_on_page(session_state, page):
 
 # Define SessionState class
 class SessionState:
-    def _init_(self, **kwargs):
-        self._dict_.update(kwargs)
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
 
 # Streamlit UI
 def main():
@@ -65,5 +65,5 @@ def main():
                     converted_image = convert_image_format(image, "GIF")
                     st.image(converted_image, caption="Converted Image", use_column_width=True)
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
