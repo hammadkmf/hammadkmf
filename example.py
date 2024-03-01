@@ -1,65 +1,69 @@
-import tkinter as tk
-import socket
-from tkinter import *
-from PIL import ImageTk,Image
+import streamlit as st
+from PIL import Image
+import io
 
-def voteCast(root,frame1,vote,client_socket):
+# Function to convert image format
+def convert_image_format(image, format):
+    img_io = io.BytesIO()
+    image.save(img_io, format=format)
+    return img_io.getvalue()
 
-    for widget in frame1.winfo_children():
-        widget.destroy()
+# Function to check if the user is on a certain page
+def is_on_page(session_state, page):
+    return session_state.page == page
 
-    client_socket.send(vote.encode()) #4
+# Define SessionState class
+class SessionState:
+    def _init_(self, **kwargs):
+        self._dict_.update(kwargs)
 
-    message = client_socket.recv(1024) #Success message
-    print(message.decode()) #5
-    message = message.decode()
-    if(message=="Successful"):
-        Label(frame1, text="Vote Casted Successfully", font=('Helvetica', 18, 'bold')).grid(row = 1, column = 1)
-    else:
-        Label(frame1, text="Vote Cast Failed... \nTry again", font=('Helvetica', 18, 'bold')).grid(row = 1, column = 1)
+# Streamlit UI
+def main():
+    st.sidebar.title("Select Option")
+    page = st.sidebar.radio("Go to", ["Home","About Us","Contact","Converter"])
 
-    client_socket.close()
+    session_state = SessionState(page=page)
 
+    # Company logo
+    st.sidebar.image("logo.png", use_column_width=True)
 
+    if page == "Home":
+        st.title("Welcome Bano Qabil")
+        st.title("Image Converter App")
+        st.write("This is the home page")
 
-def votingPg(root,frame1,client_socket):
+    elif page == "About Us":
+        st.title("Project Description")
+        st.write("Complete Details required about project.") 
+    elif page == "Contact":
+        st.title("Group Leader")
+        st.write("contact and Email Address.") 
+    elif page == "Converter":
+        st.title("Image Converter")
+        st.write("Upload an image and choose the output format.")
 
-    root.title("Cast Vote")
-    for widget in frame1.winfo_children():
-        widget.destroy()
+        # Upload image
+        uploaded_file = st.file_uploader("Upload an image", type=["jpg", "png", "gif"])
 
-    Label(frame1, text="Cast Vote", font=('Helvetica', 18, 'bold')).grid(row = 0, column = 1, rowspan=1)
-    Label(frame1, text="").grid(row = 1,column = 0)
+        if uploaded_file is not None:
+            # Read image
+            image = Image.open(uploaded_file)
+            st.image(image, caption="Uploaded Image", use_column_width=True)
 
-    vote = StringVar(frame1,"-1")
+            # Choose output format
+            output_format = st.selectbox("Select output format", ["JPG", "PNG", "GIF"])
 
-    Radiobutton(frame1, text = "BJP\n\nNarendra Modi", variable = vote, value = "bjp", indicator = 0, height = 4, width=15, command = lambda: voteCast(root,frame1,"bjp",client_socket)).grid(row = 2,column = 1)
-    bjpLogo = ImageTk.PhotoImage((Image.open("img/bjp.png")).resize((45,45),Image.ANTIALIAS))
-    bjpImg = Label(frame1, image=bjpLogo).grid(row = 2,column = 0)
+            # Convert and display converted image
+            if st.button("Convert"):
+                if output_format == "JPG":
+                    converted_image = convert_image_format(image, "JPEG")
+                    st.image(converted_image, caption="Converted Image", use_column_width=True)
+                elif output_format == "PNG":
+                    converted_image = convert_image_format(image, "PNG")
+                    st.image(converted_image, caption="Converted Image", use_column_width=True)
+                elif output_format == "GIF":
+                    converted_image = convert_image_format(image, "GIF")
+                    st.image(converted_image, caption="Converted Image", use_column_width=True)
 
-    Radiobutton(frame1, text = "Congress\n\nRahul Gandhi", variable = vote, value = "cong", indicator = 0, height = 4, width=15, command = lambda: voteCast(root,frame1,"cong",client_socket)).grid(row = 3,column = 1)
-    congLogo = ImageTk.PhotoImage((Image.open("img/cong.jpg")).resize((35,48),Image.ANTIALIAS))
-    congImg = Label(frame1, image=congLogo).grid(row = 3,column = 0)
-
-    Radiobutton(frame1, text = "Aam Aadmi Party\n\nArvind Kejriwal", variable = vote, value = "aap", indicator = 0, height = 4, width=15, command = lambda: voteCast(root,frame1,"aap",client_socket) ).grid(row = 4,column = 1)
-    aapLogo = ImageTk.PhotoImage((Image.open("img/aap.png")).resize((55,40),Image.ANTIALIAS))
-    aapImg = Label(frame1, image=aapLogo).grid(row = 4,column = 0)
-
-    Radiobutton(frame1, text = "Shiv Sena\n\nUdhav Thakrey", variable = vote, value = "ss", indicator = 0, height = 4, width=15, command = lambda: voteCast(root,frame1,"ss",client_socket)).grid(row = 5,column = 1)
-    ssLogo = ImageTk.PhotoImage((Image.open("img/ss.png")).resize((50,45),Image.ANTIALIAS))
-    ssImg = Label(frame1, image=ssLogo).grid(row = 5,column = 0)
-
-    Radiobutton(frame1, text = "\nNOTA    \n  ", variable = vote, value = "nota", indicator = 0, height = 4, width=15, command = lambda: voteCast(root,frame1,"nota",client_socket)).grid(row = 6,column = 1)
-    notaLogo = ImageTk.PhotoImage((Image.open("img/nota.jpg")).resize((45,35),Image.ANTIALIAS))
-    notaImg = Label(frame1, image=notaLogo).grid(row = 6,column = 0)
-
-    frame1.pack()
-    root.mainloop()
-
-
-# if __name__ == "__main__":
-#         root = Tk()
-#         root.geometry('500x500')
-#         frame1 = Frame(root)
-#         client_socket='Fail'
-#         votingPg(root,frame1,client_socket)
+if _name_ == "_main_":
+    main()
